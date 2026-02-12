@@ -44,13 +44,12 @@ class _AuthPageState extends State<AuthPage> {
         }
       }
     } on AuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.redAccent),
-        );
-      }
+      _showError(e.message);
+    } catch (e) {
+     // Capture les erreurs réseau (SocketException)
+     _showError("Problème de connexion. Vérifiez votre internet.");
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+     if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -65,25 +64,28 @@ class _AuthPageState extends State<AuthPage> {
             bottom: 0,
             left: 0,
             right: 0,
-            height: MediaQuery.of(context).size.height * 0.45,
+            top: MediaQuery.of(context).size.height * 0.5, // L'image commence au milieu
             child: Stack(
-              fit: StackFit.expand,
               children: [
-                Image.asset(
-                  'assets/image_connexion.png',
-                  fit: BoxFit.cover,
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/image_connexion.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
                 ),
-                // Le dégradé pour fondre l'image dans le blanc du haut
+                // Dégradé plus long pour une transition fluide
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.4],
                       colors: [
                         Colors.white,
-                        Colors.white.withOpacity(0.0),
+                        Colors.white.withOpacity(0.8),
+                        Colors.transparent,
                       ],
+                     stops: const [0.0, 0.2, 0.5],
                     ),
                   ),
                 ),
@@ -229,6 +231,18 @@ class _AuthPageState extends State<AuthPage> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
